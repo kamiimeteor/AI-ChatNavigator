@@ -10,6 +10,8 @@ window.ACN_Sidebar = (function () {
   var tocListEl = null;
   var stateTextEl = null;
   var pinBtn = null;
+  var fullscreenHandler = null;
+  var isClosed = false;
 
   function clearChildren(el) {
     while (el.firstChild) {
@@ -73,7 +75,7 @@ window.ACN_Sidebar = (function () {
     document.body.appendChild(sidebarEl);
 
     triggerEl.addEventListener('mouseenter', function () {
-      if (!isFullScreen()) show();
+      if (!isFullScreen() && !isClosed) show();
     });
     sidebarEl.addEventListener('mouseenter', function () {
       isHovering = true;
@@ -100,6 +102,7 @@ window.ACN_Sidebar = (function () {
     closeBtn.addEventListener('click', function () {
       hide();
       isPinned = false;
+      isClosed = true;
       pinBtn.classList.remove('acn-pinned');
       savePersistence();
     });
@@ -108,7 +111,7 @@ window.ACN_Sidebar = (function () {
       e.stopPropagation();
     });
 
-    document.addEventListener('fullscreenchange', function () {
+    fullscreenHandler = function () {
       if (isFullScreen()) {
         sidebarEl.classList.add('acn-fullscreen-hidden');
         triggerEl.classList.add('acn-fullscreen-hidden');
@@ -116,7 +119,8 @@ window.ACN_Sidebar = (function () {
         sidebarEl.classList.remove('acn-fullscreen-hidden');
         triggerEl.classList.remove('acn-fullscreen-hidden');
       }
-    });
+    };
+    document.addEventListener('fullscreenchange', fullscreenHandler);
 
     updateTheme();
     loadPersistence();
@@ -179,7 +183,8 @@ window.ACN_Sidebar = (function () {
     clearChildren(tocListEl);
     var items = tocEntries.slice();
     items.reverse();
-    items.forEach(function (entry) {
+    var visible = items.slice(0, 6);
+    visible.forEach(function (entry) {
       var div = document.createElement('div');
       div.className = 'acn-toc-item';
       div.textContent = entry.label;
@@ -226,13 +231,17 @@ window.ACN_Sidebar = (function () {
 
   function savePersistence() {
     if (chrome.storage && chrome.storage.local) {
-      chrome.storage.local.set({ acn_pinned: isPinned });
+      chrome.storage.local.set({ acn_pinned: isPinned, acn_closed: isClosed });
     }
   }
 
   function loadPersistence() {
     if (chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get(['acn_pinned'], function (result) {
+      chrome.storage.local.get(['acn_pinned', 'acn_closed'], function (result) {
+        if (result.acn_closed) {
+          isClosed = true;
+          return;
+        }
         if (result.acn_pinned) {
           isPinned = true;
           pinBtn.classList.add('acn-pinned');
@@ -243,6 +252,10 @@ window.ACN_Sidebar = (function () {
   }
 
   function destroy() {
+    if (fullscreenHandler) {
+      document.removeEventListener('fullscreenchange', fullscreenHandler);
+      fullscreenHandler = null;
+    }
     if (triggerEl) { triggerEl.remove(); triggerEl = null; }
     if (sidebarEl) { sidebarEl.remove(); sidebarEl = null; }
     tocListEl = null;
@@ -252,6 +265,7 @@ window.ACN_Sidebar = (function () {
     state = STATES.LOADING;
     isPinned = false;
     isHovering = false;
+    isClosed = false;
   }
 
   return {

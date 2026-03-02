@@ -155,12 +155,6 @@
   animation: acnMessageFlash 1.5s ease-out forwards;
 }
 
-/* Dark mode highlight */
-@keyframes acnMessageFlashDark {
-  0% { background: rgba(3, 169, 244, 0.45); }
-  100% { background: rgba(3, 169, 244, 0); }
-}
-
 /* --- Fullscreen: hide everything --- */
 .acn-fullscreen-hidden {
   display: none !important;

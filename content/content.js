@@ -68,7 +68,8 @@
   }
 
   function init() {
-    Observer.destroyAll();
+    Observer.stopWatchingDOM();
+    Observer.stopTrackingActive();
     Sidebar.destroy();
 
     setTimeout(function () {
