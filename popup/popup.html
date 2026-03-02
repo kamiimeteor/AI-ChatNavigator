@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 200px;
+      padding: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      color: #333;
+      margin: 0;
+    }
+    h1 {
+      font-size: 14px;
+      margin: 0 0 10px 0;
+      font-weight: 600;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .label { color: #888; }
+    .value { font-weight: 500; }
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .status-dot.active { background: #4CAF50; }
+    .status-dot.inactive { background: #CCC; }
+  </style>
+</head>
+<body>
+  <h1>AI ChatNavigator</h1>
+  <div class="row">
+    <span class="label">Status</span>
+    <span class="value" id="status">
+      <span class="status-dot inactive" id="status-dot"></span>
+      <span id="status-text">Inactive</span>
+    </span>
+  </div>
+  <div class="row">
+    <span class="label">Platform</span>
+    <span class="value" id="platform">&mdash;</span>
+  </div>
+  <div class="row">
+    <span class="label">Messages</span>
+    <span class="value" id="messages">&mdash;</span>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
