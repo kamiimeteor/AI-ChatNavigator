@@ -5,17 +5,31 @@ window.ACN_Adapters.push({
   match() {
     var correctHost = location.hostname.includes('chatgpt.com') ||
                       location.hostname.includes('chat.openai.com');
-    var hasChat = !!document.querySelector('[data-message-author-role]');
+    var hasChat = !!document.querySelector('.user-message-bubble-color');
     return correctHost && hasChat;
   },
 
   getContainer() {
-    var article = document.querySelector('article');
-    return article ? article.parentElement : null;
+    // main#main is the primary chat container on current ChatGPT
+    var container = document.querySelector('main#main');
+    if (container) return container;
+    // Fallback: find the scrollable parent of the first user message
+    var firstMsg = document.querySelector('.user-message-bubble-color');
+    if (firstMsg) {
+      var el = firstMsg.parentElement;
+      while (el && el !== document.body) {
+        var style = getComputedStyle(el);
+        if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+          return el;
+        }
+        el = el.parentElement;
+      }
+    }
+    return null;
   },
 
   getUserMessages() {
-    var els = document.querySelectorAll('[data-message-author-role="user"]');
+    var els = document.querySelectorAll('.user-message-bubble-color');
     return Array.from(els).map(function (el) {
       return { element: el, text: (el.innerText || '').trim() };
     });
@@ -26,9 +40,11 @@ window.ACN_Adapters.push({
   },
 
   isLikelyEmptyConversation() {
-    var container = this.getContainer();
-    if (!container) return false;
-    var hasMessages = container.querySelectorAll('article').length > 0;
-    return !hasMessages;
+    var correctHost = location.hostname.includes('chatgpt.com') ||
+                      location.hostname.includes('chat.openai.com');
+    if (!correctHost) return false;
+    var hasAnyMessage = document.querySelector('.user-message-bubble-color') ||
+                        document.querySelector('.agent-turn');
+    return !hasAnyMessage;
   }
 });

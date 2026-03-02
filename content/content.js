@@ -3,19 +3,27 @@
   var Observer = window.ACN_Observer;
   var adapters = window.ACN_Adapters || [];
 
-  var MAX_RETRIES = 3;
+  var MAX_RETRIES = 5;
   var RETRY_INTERVAL = 1000;
 
   var activeAdapter = null;
 
+  console.log('[ACN] content.js loaded');
+  console.log('[ACN] adapters found:', adapters.length);
+  console.log('[ACN] Sidebar module:', !!Sidebar);
+  console.log('[ACN] Observer module:', !!Observer);
+  console.log('[ACN] hostname:', location.hostname);
+
   function detectAdapter() {
     for (var i = 0; i < adapters.length; i++) {
       try {
+        console.log('[ACN] trying adapter:', adapters[i].name, '-> match():', adapters[i].match());
         if (adapters[i].match()) return adapters[i];
       } catch (e) {
-        // Adapter match failed — skip silently
+        console.log('[ACN] adapter', adapters[i].name, 'match() error:', e.message);
       }
     }
+    console.log('[ACN] no adapter matched');
     return null;
   }
 
@@ -72,13 +80,17 @@
     Observer.stopTrackingActive();
     Sidebar.destroy();
 
-    setTimeout(function () {
-      activeAdapter = detectAdapter();
-      if (!activeAdapter) {
-        return;
-      }
-      window.ACN_activeAdapter = activeAdapter;
+    console.log('[ACN] init() starting, will retry adapter detection');
+    retryDetectAdapter(MAX_RETRIES);
+  }
 
+  function retryDetectAdapter(retriesLeft) {
+    console.log('[ACN] retryDetectAdapter, retriesLeft:', retriesLeft);
+    activeAdapter = detectAdapter();
+
+    if (activeAdapter) {
+      console.log('[ACN] adapter matched:', activeAdapter.name);
+      window.ACN_activeAdapter = activeAdapter;
       Sidebar.create();
       Sidebar.setState(Sidebar.STATES.LOADING);
 
@@ -87,11 +99,17 @@
           Sidebar.setState(Sidebar.STATES.ERROR);
           return;
         }
-
         detectMessages(activeAdapter);
         Observer.watchDOM(container, onDOMMutation);
       });
-    }, 500);
+    } else if (retriesLeft > 0) {
+      console.log('[ACN] no adapter yet, retrying in 1s...');
+      setTimeout(function () {
+        retryDetectAdapter(retriesLeft - 1);
+      }, RETRY_INTERVAL);
+    } else {
+      console.log('[ACN] no adapter matched after all retries');
+    }
   }
 
   init();
