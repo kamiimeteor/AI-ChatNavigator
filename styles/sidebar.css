@@ -1,0 +1,185 @@
+/* ============================================
+   AI ChatNavigator — Sidebar Styles
+   ============================================ */
+
+/* --- Trigger Zone (invisible hover area on right edge) --- */
+.acn-trigger {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 100vh;
+  z-index: 9998;
+  cursor: pointer;
+}
+
+/* --- Sidebar Card --- */
+.acn-sidebar {
+  position: fixed;
+  right: -200px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 184px;
+  height: 240px;
+  z-index: 9999;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.25s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+
+  /* Light mode defaults */
+  background: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(13, 13, 13, 0.15);
+  color: #0D0D0D;
+}
+
+/* Sidebar visible state */
+.acn-sidebar.acn-visible {
+  right: 8px;
+}
+
+/* --- Dark Mode --- */
+.acn-sidebar.acn-dark {
+  background: #131D2B;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  color: #E6EDF3;
+}
+
+.acn-sidebar.acn-dark .acn-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.acn-sidebar.acn-dark .acn-toc-item {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.acn-sidebar.acn-dark .acn-toc-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #E6EDF3;
+}
+
+.acn-sidebar.acn-dark .acn-toc-item.acn-active {
+  color: #E6EDF3;
+}
+
+.acn-sidebar.acn-dark .acn-state-text {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* --- Header --- */
+.acn-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(13, 13, 13, 0.1);
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.acn-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 13px;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  color: inherit;
+  line-height: 1;
+}
+
+.acn-btn:hover {
+  opacity: 1;
+}
+
+.acn-btn-pin.acn-pinned {
+  opacity: 1;
+}
+
+/* --- TOC List --- */
+.acn-toc {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.acn-toc-item {
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(13, 13, 13, 0.65);
+  transition: background 0.15s, color 0.15s;
+}
+
+.acn-toc-item:hover {
+  background: rgba(13, 13, 13, 0.04);
+  color: #0D0D0D;
+}
+
+.acn-toc-item.acn-active {
+  color: #0D0D0D;
+  font-weight: 500;
+}
+
+.acn-toc-item.acn-active::before {
+  content: '\25CF';
+  margin-right: 4px;
+  color: #03A9F4;
+  font-size: 8px;
+  vertical-align: middle;
+}
+
+/* --- State Text (LOADING / EMPTY / ERROR) --- */
+.acn-state-text {
+  padding: 20px 12px;
+  text-align: center;
+  color: rgba(13, 13, 13, 0.4);
+  font-size: 11px;
+}
+
+/* --- Highlight Flash (applied to chat messages) --- */
+@keyframes acnMessageFlash {
+  0% { background: rgba(3, 169, 244, 0.6); }
+  100% { background: rgba(3, 169, 244, 0); }
+}
+
+.acn-highlight-flash {
+  animation: acnMessageFlash 1.5s ease-out forwards;
+}
+
+/* Dark mode highlight */
+@keyframes acnMessageFlashDark {
+  0% { background: rgba(3, 169, 244, 0.45); }
+  100% { background: rgba(3, 169, 244, 0); }
+}
+
+/* --- Fullscreen: hide everything --- */
+.acn-fullscreen-hidden {
+  display: none !important;
+}
+
+/* --- Scrollbar styling for TOC --- */
+.acn-toc::-webkit-scrollbar {
+  width: 3px;
+}
+
+.acn-toc::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.acn-toc::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+.acn-sidebar.acn-dark .acn-toc::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
