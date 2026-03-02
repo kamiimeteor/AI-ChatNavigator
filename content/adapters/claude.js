@@ -4,9 +4,9 @@ window.ACN_Adapters.push({
 
   match() {
     var correctHost = location.hostname.includes('claude.ai');
-    var hasChat = !!document.querySelector('[data-testid="user-message"]') ||
-                  !!document.querySelector('.font-user-message');
-    return correctHost && hasChat;
+    if (!correctHost) return false;
+    var path = location.pathname;
+    return path === '/' || path === '/new' || path.startsWith('/chat/');
   },
 
   getContainer() {
@@ -35,5 +35,10 @@ window.ACN_Adapters.push({
                         document.querySelector('.font-user-message') ||
                         document.querySelector('.font-claude-message');
     return !hasAnyMessage;
+  },
+
+  getChatTitle() {
+    var title = document.title || '';
+    return title.replace(/\s*[-|]\s*Claude\s*$/, '').trim() || 'New Chat';
   }
 });

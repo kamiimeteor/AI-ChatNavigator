@@ -15,14 +15,12 @@
         "https://chatgpt.com/*",
         "https://chat.openai.com/*",
         "https://claude.ai/*",
-        "https://gemini.google.com/*",
-        "https://grok.com/*"
+        "https://gemini.google.com/*"
       ],
       "js": [
         "content/adapters/chatgpt.js",
         "content/adapters/claude.js",
         "content/adapters/gemini.js",
-        "content/adapters/grok.js",
         "content/observer.js",
         "content/sidebar.js",
         "content/content.js"

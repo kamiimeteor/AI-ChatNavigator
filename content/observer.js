@@ -54,7 +54,10 @@ window.ACN_Observer = (function () {
     stopWatchingNavigation();
 
     var debounceTimer = null;
+    var lastUrl = location.href;
+
     function debouncedNavigate() {
+      lastUrl = location.href;
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(onNavigate, 300);
     }
@@ -73,11 +76,19 @@ window.ACN_Observer = (function () {
 
     window.addEventListener('popstate', debouncedNavigate);
 
+    var urlPollTimer = setInterval(function () {
+      if (location.href !== lastUrl) {
+        lastUrl = location.href;
+        debouncedNavigate();
+      }
+    }, 500);
+
     navigationCleanup = function () {
       history.pushState = origPushState;
       history.replaceState = origReplaceState;
       window.removeEventListener('popstate', debouncedNavigate);
       clearTimeout(debounceTimer);
+      clearInterval(urlPollTimer);
     };
   }
 

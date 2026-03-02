@@ -3,31 +3,29 @@
   var Observer = window.ACN_Observer;
   var adapters = window.ACN_Adapters || [];
 
-  var MAX_RETRIES = 5;
+  var MAX_RETRIES = 10;
   var RETRY_INTERVAL = 1000;
 
   var activeAdapter = null;
+  var initGeneration = 0;
 
   console.log('[ACN] content.js loaded');
   console.log('[ACN] adapters found:', adapters.length);
-  console.log('[ACN] Sidebar module:', !!Sidebar);
-  console.log('[ACN] Observer module:', !!Observer);
   console.log('[ACN] hostname:', location.hostname);
 
   function detectAdapter() {
     for (var i = 0; i < adapters.length; i++) {
       try {
-        console.log('[ACN] trying adapter:', adapters[i].name, '-> match():', adapters[i].match());
         if (adapters[i].match()) return adapters[i];
       } catch (e) {
         console.log('[ACN] adapter', adapters[i].name, 'match() error:', e.message);
       }
     }
-    console.log('[ACN] no adapter matched');
     return null;
   }
 
-  function resolveContainer(adapter, retriesLeft, callback) {
+  function resolveContainer(adapter, retriesLeft, gen, callback) {
+    if (gen !== initGeneration) return;
     var container = adapter.getContainer();
     if (container) {
       callback(container);
@@ -35,7 +33,7 @@
     }
     if (retriesLeft > 0) {
       setTimeout(function () {
-        resolveContainer(adapter, retriesLeft - 1, callback);
+        resolveContainer(adapter, retriesLeft - 1, gen, callback);
       }, RETRY_INTERVAL);
     } else {
       callback(null);
@@ -47,6 +45,7 @@
     if (messages.length > 0) {
       Sidebar.setState(Sidebar.STATES.READY);
       Sidebar.updateEntries(messages);
+      Sidebar.setTitle(adapter.getChatTitle());
       Observer.trackActiveMessage(
         messages.map(function (m) { return m.element; }),
         function (el) { Sidebar.setActiveElement(el); }
@@ -66,6 +65,7 @@
     if (messages.length > 0) {
       Sidebar.setState(Sidebar.STATES.READY);
       Sidebar.updateEntries(messages);
+      Sidebar.setTitle(activeAdapter.getChatTitle());
       Observer.trackActiveMessage(
         messages.map(function (m) { return m.element; }),
         function (el) { Sidebar.setActiveElement(el); }
@@ -75,40 +75,74 @@
     }
   }
 
+  function startContainerRecovery(adapter, gen) {
+    Observer.watchDOM(document.body, function () {
+      if (gen !== initGeneration) return;
+      var container = adapter.getContainer();
+      if (container) {
+        Observer.stopWatchingDOM();
+        detectMessages(adapter);
+        Observer.watchDOM(container, onDOMMutation);
+      }
+    });
+  }
+
   function init() {
+    initGeneration++;
+    var gen = initGeneration;
+
     Observer.stopWatchingDOM();
     Observer.stopTrackingActive();
     Sidebar.destroy();
 
-    console.log('[ACN] init() starting, will retry adapter detection');
-    retryDetectAdapter(MAX_RETRIES);
-  }
-
-  function retryDetectAdapter(retriesLeft) {
-    console.log('[ACN] retryDetectAdapter, retriesLeft:', retriesLeft);
     activeAdapter = detectAdapter();
 
     if (activeAdapter) {
-      console.log('[ACN] adapter matched:', activeAdapter.name);
       window.ACN_activeAdapter = activeAdapter;
       Sidebar.create();
       Sidebar.setState(Sidebar.STATES.LOADING);
 
-      resolveContainer(activeAdapter, MAX_RETRIES, function (container) {
+      resolveContainer(activeAdapter, MAX_RETRIES, gen, function (container) {
+        if (gen !== initGeneration) return;
         if (!container) {
           Sidebar.setState(Sidebar.STATES.ERROR);
+          startContainerRecovery(activeAdapter, gen);
+          return;
+        }
+        detectMessages(activeAdapter);
+        Observer.watchDOM(container, onDOMMutation);
+      });
+    } else {
+      setTimeout(function () {
+        if (gen !== initGeneration) return;
+        retryDetectAdapter(MAX_RETRIES, gen);
+      }, RETRY_INTERVAL);
+    }
+  }
+
+  function retryDetectAdapter(retriesLeft, gen) {
+    if (gen !== initGeneration) return;
+    activeAdapter = detectAdapter();
+
+    if (activeAdapter) {
+      window.ACN_activeAdapter = activeAdapter;
+      Sidebar.create();
+      Sidebar.setState(Sidebar.STATES.LOADING);
+
+      resolveContainer(activeAdapter, MAX_RETRIES, gen, function (container) {
+        if (gen !== initGeneration) return;
+        if (!container) {
+          Sidebar.setState(Sidebar.STATES.ERROR);
+          startContainerRecovery(activeAdapter, gen);
           return;
         }
         detectMessages(activeAdapter);
         Observer.watchDOM(container, onDOMMutation);
       });
     } else if (retriesLeft > 0) {
-      console.log('[ACN] no adapter yet, retrying in 1s...');
       setTimeout(function () {
-        retryDetectAdapter(retriesLeft - 1);
+        retryDetectAdapter(retriesLeft - 1, gen);
       }, RETRY_INTERVAL);
-    } else {
-      console.log('[ACN] no adapter matched after all retries');
     }
   }
 

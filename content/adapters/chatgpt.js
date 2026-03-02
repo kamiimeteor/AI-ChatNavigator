@@ -5,8 +5,9 @@ window.ACN_Adapters.push({
   match() {
     var correctHost = location.hostname.includes('chatgpt.com') ||
                       location.hostname.includes('chat.openai.com');
-    var hasChat = !!document.querySelector('.user-message-bubble-color');
-    return correctHost && hasChat;
+    if (!correctHost) return false;
+    var path = location.pathname;
+    return path === '/' || path.startsWith('/c/');
   },
 
   getContainer() {
@@ -46,5 +47,10 @@ window.ACN_Adapters.push({
     var hasAnyMessage = document.querySelector('.user-message-bubble-color') ||
                         document.querySelector('.agent-turn');
     return !hasAnyMessage;
+  },
+
+  getChatTitle() {
+    var title = document.title || '';
+    return title.replace(/\s*[-|]\s*ChatGPT\s*$/, '').trim() || 'New Chat';
   }
 });

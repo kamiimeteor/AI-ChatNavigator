@@ -4,9 +4,8 @@ window.ACN_Adapters.push({
 
   match() {
     var correctHost = location.hostname.includes('gemini.google.com');
-    var hasChat = !!document.querySelector('user-query') ||
-                  !!document.querySelector('user-query-content');
-    return correctHost && hasChat;
+    if (!correctHost) return false;
+    return /^\/(u\/\d+\/)?app(\/|$)/.test(location.pathname);
   },
 
   getContainer() {
@@ -37,5 +36,10 @@ window.ACN_Adapters.push({
     var hasAnyResponse = document.querySelector('model-response') ||
                          document.querySelector('message-content');
     return !hasAnyQuery && !hasAnyResponse;
+  },
+
+  getChatTitle() {
+    var title = document.title || '';
+    return title.replace(/\s*[-|]\s*Google Gemini\s*$/i, '').replace(/\s*[-|]\s*Gemini\s*$/i, '').trim() || 'New Chat';
   }
 });

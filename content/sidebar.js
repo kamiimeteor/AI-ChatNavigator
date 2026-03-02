@@ -10,6 +10,7 @@ window.ACN_Sidebar = (function () {
   var tocListEl = null;
   var stateTextEl = null;
   var pinBtn = null;
+  var titleEl = null;
   var fullscreenHandler = null;
   var isClosed = false;
 
@@ -42,12 +43,20 @@ window.ACN_Sidebar = (function () {
 
     triggerEl = document.createElement('div');
     triggerEl.className = 'acn-trigger';
+    var triggerIcon = document.createElement('span');
+    triggerIcon.className = 'acn-trigger-icon';
+    triggerIcon.textContent = 'Chat Nav';
+    triggerEl.appendChild(triggerIcon);
 
     sidebarEl = document.createElement('div');
     sidebarEl.className = 'acn-sidebar';
 
     var header = document.createElement('div');
     header.className = 'acn-header';
+
+    titleEl = document.createElement('span');
+    titleEl.className = 'acn-title';
+    titleEl.textContent = '';
 
     pinBtn = document.createElement('button');
     pinBtn.className = 'acn-btn acn-btn-pin';
@@ -59,6 +68,7 @@ window.ACN_Sidebar = (function () {
     closeBtn.textContent = '\u00D7';
     closeBtn.title = 'Close sidebar';
 
+    header.appendChild(titleEl);
     header.appendChild(pinBtn);
     header.appendChild(closeBtn);
 
@@ -128,15 +138,19 @@ window.ACN_Sidebar = (function () {
 
   function show() {
     if (sidebarEl) sidebarEl.classList.add('acn-visible');
+    if (triggerEl) triggerEl.style.display = 'none';
   }
 
   function hide() {
     if (sidebarEl) sidebarEl.classList.remove('acn-visible');
+    if (triggerEl) triggerEl.style.display = 'flex';
   }
 
   function updateTheme() {
     if (!sidebarEl) return;
-    sidebarEl.classList.toggle('acn-dark', isDarkMode());
+    var dark = isDarkMode();
+    sidebarEl.classList.toggle('acn-dark', dark);
+    if (triggerEl) triggerEl.classList.toggle('acn-dark', dark);
   }
 
   function setState(newState) {
@@ -182,15 +196,14 @@ window.ACN_Sidebar = (function () {
   function renderTOC() {
     clearChildren(tocListEl);
     var items = tocEntries.slice();
-    items.reverse();
-    var visible = items.slice(0, 6);
-    visible.forEach(function (entry) {
+    items.forEach(function (entry) {
       var div = document.createElement('div');
       div.className = 'acn-toc-item';
       div.textContent = entry.label;
       div.addEventListener('click', function () { onTOCClick(entry); });
       tocListEl.appendChild(div);
     });
+    tocListEl.scrollTop = tocListEl.scrollHeight;
   }
 
   function onTOCClick(entry) {
@@ -222,9 +235,8 @@ window.ACN_Sidebar = (function () {
   function setActiveElement(element) {
     if (!tocListEl) return;
     var items = tocListEl.querySelectorAll('.acn-toc-item');
-    var reversedEntries = tocEntries.slice().reverse();
     items.forEach(function (item, idx) {
-      var isActive = reversedEntries[idx] && reversedEntries[idx].element === element;
+      var isActive = tocEntries[idx] && tocEntries[idx].element === element;
       item.classList.toggle('acn-active', isActive);
     });
   }
@@ -238,6 +250,7 @@ window.ACN_Sidebar = (function () {
   function loadPersistence() {
     if (chrome.storage && chrome.storage.local) {
       chrome.storage.local.get(['acn_pinned', 'acn_closed'], function (result) {
+        if (!pinBtn) return;
         if (result.acn_closed) {
           isClosed = true;
           return;
@@ -251,6 +264,10 @@ window.ACN_Sidebar = (function () {
     }
   }
 
+  function setTitle(text) {
+    if (titleEl) titleEl.textContent = text || '';
+  }
+
   function destroy() {
     if (fullscreenHandler) {
       document.removeEventListener('fullscreenchange', fullscreenHandler);
@@ -261,6 +278,7 @@ window.ACN_Sidebar = (function () {
     tocListEl = null;
     stateTextEl = null;
     pinBtn = null;
+    titleEl = null;
     tocEntries = [];
     state = STATES.LOADING;
     isPinned = false;
@@ -278,6 +296,7 @@ window.ACN_Sidebar = (function () {
     getState: getState,
     updateEntries: updateEntries,
     setActiveElement: setActiveElement,
+    setTitle: setTitle,
     updateTheme: updateTheme,
     getEntries: function () { return tocEntries; }
   };

@@ -2,24 +2,53 @@
    AI ChatNavigator — Sidebar Styles
    ============================================ */
 
-/* --- Trigger Zone (invisible hover area on right edge) --- */
+/* --- Trigger Tab (visible handle on right edge) --- */
 .acn-trigger {
   position: fixed;
-  top: 0;
+  top: 50%;
   right: 0;
-  width: 12px;
-  height: 100vh;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 80px;
   z-index: 9998;
   cursor: pointer;
+  background: #03A9F4;
+  border-radius: 6px 0 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s, width 0.2s;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.acn-trigger:hover {
+  opacity: 1;
+  width: 28px;
+}
+
+.acn-trigger-icon {
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  writing-mode: vertical-rl;
+  letter-spacing: 1px;
+}
+
+/* Dark mode trigger */
+.acn-trigger.acn-dark {
+  background: #1a73e8;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
 }
 
 /* --- Sidebar Card --- */
 .acn-sidebar {
   position: fixed;
-  right: -200px;
+  right: -220px;
   top: 50%;
   transform: translateY(-50%);
-  width: 184px;
+  width: 196px;
   height: 240px;
   z-index: 9999;
   border-radius: 8px;
@@ -74,12 +103,22 @@
 /* --- Header --- */
 .acn-header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   padding: 6px 8px;
   border-bottom: 1px solid rgba(13, 13, 13, 0.1);
   flex-shrink: 0;
   gap: 4px;
+}
+
+.acn-title {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .acn-btn {
@@ -110,7 +149,7 @@
 }
 
 .acn-toc-item {
-  padding: 5px 10px;
+  padding: 8px 16px;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
