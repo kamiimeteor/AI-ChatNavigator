@@ -1,138 +1,93 @@
 # AI ChatNavigator
 
-A Chrome extension that adds a real-time sidebar table of contents to long AI conversations, making it easier to navigate across prompts in ChatGPT, Claude, and Gemini.
+> A Chrome extension that adds a floating table of contents to ChatGPT, Claude, and Gemini — navigate long AI conversations instantly.
+
+[![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-Install-blue?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/ai-chatnavigator/illmkheigijhoimkdghiaanedpinibmc?authuser=0&hl=en)
+[![License](https://img.shields.io/badge/license-All_Rights_Reserved-lightgrey)]()
+[![JavaScript](https://img.shields.io/badge/vanilla-JavaScript-yellow?logo=javascript&logoColor=white)]()
+[![Manifest V3](https://img.shields.io/badge/Manifest-V3-green)]()
+
+![AI ChatNavigator Demo](docs/demo.gif)
 
 ## What It Does
 
-AI chat interfaces are great at generating long responses, but they are still inefficient when users need to revisit something from earlier in the conversation.
+Every user prompt becomes a clickable entry in a sidebar. Click any entry to jump straight to that message.
 
-As chats grow longer, finding a previous prompt often means manually scrolling through many turns. AI ChatNavigator solves that by generating a live table of contents from the user's prompts and keeping it available in a sidebar for fast navigation.
+**Supported platforms:** ChatGPT · Claude · Gemini
 
 ## Features
 
-- Real-time conversation table of contents generated from user prompts
-- One-click jump to earlier prompts in the same conversation
-- Active prompt highlighting while scrolling through a chat
-- Sidebar pin and close state persistence
-- Chat title display in the sidebar header
-- Support for multiple AI chat platforms through a platform adapter architecture
+- **Real-time TOC** — automatically generated from your prompts as you chat
+- **One-click navigation** — jump to any earlier message with highlight animation
+- **Active tracking** — the current prompt is highlighted as you scroll
+- **Pin or auto-hide** — keep the sidebar open or let it appear on hover
+- **Dark mode** — adapts to each platform's theme
+- **Privacy-first** — 100% local processing, zero external requests, no account needed
 
-## Supported Platforms
+## Screenshots
 
-- ChatGPT
-- Claude
-- Gemini
+<p align="center">
+  <img src="store/AI-ChatNav-Screenshot-1.jpg" width="32%" />
+  <img src="store/AI-ChatNav-Screenshot-2.jpg" width="32%" />
+  <img src="store/AI-ChatNav-Screenshot-3.jpg" width="32%" />
+</p>
 
-## Availability
+## Install
 
-AI ChatNavigator is intended to be distributed through the Chrome Web Store.
+**[→ Install from Chrome Web Store](https://chromewebstore.google.com/detail/ai-chatnavigator/illmkheigijhoimkdghiaanedpinibmc?authuser=0&hl=en)**
 
-Chrome Web Store listing: Coming soon.
+Or load manually for development:
+
+1. Clone this repo
+2. Open `chrome://extensions` → enable Developer Mode
+3. Click "Load unpacked" → select the project folder
 
 ## How It Works
 
-The extension injects a lightweight sidebar into supported AI chat pages.
+The extension uses a platform adapter pattern — each supported site has its own adapter that handles DOM selectors and route matching, while shared modules manage the sidebar UI, state machine, and observers.
 
-Each platform adapter is responsible for:
+```
+AI_ChatNavigator/
+├── manifest.json              # Manifest V3 config
+├── content/
+│   ├── content.js             # Entry point, adapter detection, retry logic
+│   ├── observer.js            # MutationObserver + IntersectionObserver + SPA nav
+│   ├── sidebar.js             # Sidebar UI, state machine, TOC rendering
+│   └── adapters/
+│       ├── chatgpt.js         # ChatGPT adapter
+│       ├── claude.js          # Claude adapter
+│       └── gemini.js          # Gemini adapter
+├── styles/sidebar.css         # Sidebar styles (light/dark)
+├── popup/                     # Extension popup
+└── icons/                     # Extension icons
+```
 
-- detecting whether the current page is a supported chat route
-- locating the main chat container
-- extracting user messages
-- scrolling back to a selected message
-- detecting whether a conversation is empty
-- deriving the chat title from the current page context
+### Key technical decisions
 
-The content script then connects the adapter to:
-
-- a sidebar state machine
-- DOM mutation tracking for real-time updates
-- active message tracking
-- SPA navigation detection and recovery logic
-
-## Architecture
-
-This project uses a simple adapter-based structure so platform-specific logic stays isolated.
-
-### Core modules
-
-- `content/content.js`
-  Main entry point. Detects the active platform adapter, initializes the sidebar, and coordinates observers and recovery flow.
-
-- `content/sidebar.js`
-  Handles sidebar creation, rendering, state transitions, title updates, TOC interactions, and persistence.
-
-- `content/observer.js`
-  Manages DOM mutation observation, active message tracking, and navigation detection for single-page app behavior.
-
-- `content/adapters/*.js`
-  One adapter per platform. Each adapter implements `match()`, `getContainer()`, `getUserMessages()`, `scrollToMessage()`, `isLikelyEmptyConversation()`, and `getChatTitle()`.
+- **Vanilla JS, no build step, zero dependencies** — keeps the extension lightweight and easy to audit
+- **Adapter pattern** — platform-specific DOM logic stays isolated; adding a new platform means adding one file
+- **Route-based matching** — adapters match on hostname + URL path, not DOM elements, so empty conversations work correctly
+- **Triple observer setup** — MutationObserver for new messages, IntersectionObserver for active tracking, URL polling for SPA navigation
+- **Minimal permissions** — only `storage` (for sidebar pin/close state)
 
 ## Privacy
 
-AI ChatNavigator processes page content locally in the browser in order to build the conversation table of contents.
-
-Current implementation:
-
-- does not send chat content to external servers
-- does not use remote code
-- does not require account login
-- only uses the `storage` permission to persist sidebar UI state such as pin/close behavior
-
-## Permissions
-
-The extension currently requests only one Chrome permission:
-
-- `storage`  
-  Used to save sidebar UI preferences locally in the browser.
-
-## Current Status
-
-AI ChatNavigator is actively being refined for reliability across supported platforms.
-
-Recent improvements include:
-
-- more precise route-based adapter matching
-- reduced false activation on non-chat pages
-- better handling for delayed chat container rendering
-- improved Gemini multi-account route support
+- No data leaves your browser
+- No external requests, analytics, or tracking
+- No account or login required
+- Only permission: `storage` (sidebar UI preferences)
 
 ## Known Limitations
 
-- The extension depends on platform DOM structure and route conventions, so supported sites may require adapter updates when their frontend changes
-- Behavior can vary when AI platforms roll out experiments, redesigns, or account-specific UI differences
-- Chrome Web Store listing assets and final store copy may still evolve as the product is prepared for public release
+- Depends on platform DOM structure — adapters may need updates when ChatGPT, Claude, or Gemini change their frontend
+- Behavior may vary during platform A/B tests or redesigns
 
-## Roadmap
+## Contributing
 
-- improve adapter resilience against frontend changes
-- expand support for additional stable chat routes where appropriate
-- add stronger regression testing for adapter matching and message extraction
-- finalize Chrome Web Store listing assets, descriptions, and privacy documentation
+Found a bug or selector that broke? Issues and PRs welcome.
 
-## Repository Structure
-
-```text
-AI_ChatNavigator/
-├── manifest.json
-├── content/
-│   ├── content.js
-│   ├── observer.js
-│   ├── sidebar.js
-│   └── adapters/
-│       ├── chatgpt.js
-│       ├── claude.js
-│       └── gemini.js
-├── popup/
-│   ├── popup.html
-│   └── popup.js
-├── styles/
-│   └── sidebar.css
-├── icons/
-└── docs/
-```
+If a platform changed its DOM and the extension stopped working, the fix is usually in the corresponding adapter file under `content/adapters/`.
 
 ## License
-
-No license has been added yet.
 
 All rights reserved unless a license is added explicitly in the future.
