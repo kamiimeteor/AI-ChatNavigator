@@ -1,11 +1,20 @@
-# AI ChatNavigator
-
-> A Chrome extension that adds a floating table of contents to ChatGPT, Claude, and Gemini — navigate long AI conversations instantly.
-
-[![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-Install-blue?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/ai-chatnavigator/illmkheigijhoimkdghiaanedpinibmc?authuser=0&hl=en)
-[![License](https://img.shields.io/badge/license-All_Rights_Reserved-lightgrey)]()
-[![JavaScript](https://img.shields.io/badge/vanilla-JavaScript-yellow?logo=javascript&logoColor=white)]()
-[![Manifest V3](https://img.shields.io/badge/Manifest-V3-green)]()
+<div align="center">
+  <h1>AI ChatNavigator</h1>
+  <p>
+    <a href="https://www.producthunt.com/products/ai-chat-navigator?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-ai-chat-navigator">
+      <img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1097648&theme=light" height="54" alt="AI Chat Navigator - Add a floating TOC sidebar to AI chats | Product Hunt">
+    </a>
+  </p>
+  <p>A Chrome extension that adds a floating table of contents to ChatGPT, Claude, and Gemini - navigate long AI conversations instantly.</p>
+  <p>
+    <a href="https://chromewebstore.google.com/detail/ai-chatnavigator/illmkheigijhoimkdghiaanedpinibmc?authuser=0&hl=en">
+      <img src="https://img.shields.io/badge/Chrome_Web_Store-Install-blue?logo=googlechrome&logoColor=white" alt="Chrome Web Store">
+    </a>
+    <img src="https://img.shields.io/badge/license-All_Rights_Reserved-lightgrey" alt="License: All Rights Reserved">
+    <img src="https://img.shields.io/badge/vanilla-JavaScript-yellow?logo=javascript&logoColor=white" alt="Vanilla JavaScript">
+    <img src="https://img.shields.io/badge/Manifest-V3-green" alt="Manifest V3">
+  </p>
+</div>
 
 ![AI ChatNavigator Demo](docs/demo.gif)
 
