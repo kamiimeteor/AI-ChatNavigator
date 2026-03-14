@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI ChatNavigator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Real-time table of contents for AI chat platforms. Never get lost in long conversations again.",
   "permissions": ["storage"],
   "icons": {
