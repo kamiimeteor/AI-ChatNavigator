@@ -1,0 +1,28 @@
+{
+  "version": "1.0.3",
+  "gitHead": "47ddca90c3983ef5cef7d8d51507de83362f5d3d",
+  "workingTreeDirty": true,
+  "zipSha256": "5f75c6a36174a088a414b0ab24d1d73859a4e5086347f334d69bc9f73b592863",
+  "baselineRelease": {
+    "file": "AI-ChatNavigator-v1.0.2-chrome.zip",
+    "sha256": "9858590b5a99328b0554dd0be2326a8caa1c2eea0859ff2dfffcbc8ea7fdf95b"
+  },
+  "sourceSha256": {
+    "manifest.json": "cf28777a0aba34dc1fbba2649ae3a83cdb5ae3e6a55bf0e281bca183a9dab9b6",
+    "content/message-index.js": "4c8fb38a841e3bc232130ed3723ca329207039fe5f5fc73cd5848304dfe15bbf",
+    "content/navigation.js": "9e11d10de9760afaa20828c5782cdecfbf2b8313c815705cd8e8093657700a32",
+    "content/content.js": "dc569bfbc5de1ba48c3f3869a1c8a68261eef96bc92a410c49745e23ebf447f6",
+    "content/observer.js": "46b3e315213bfae32a131cedddf71f19da5f37065df7fbeb504801594edc079c",
+    "content/sidebar.js": "6fe0f810c25cc72b1efbdbf6a6486f621e38b7eb75be77048c53d8b3d0c689c9",
+    "content/adapters/common.js": "dc8afcce4c9271780727b988ad8bc108dd3e2c0b3fff34b1a0f270871347d273",
+    "content/adapters/chatgpt.js": "fed20dac2fdb5ed3f5c064551448216f0da2321db311b0f842847ed683d4e647",
+    "content/adapters/claude.js": "b5560fcdebfe93ac6ff06a6f9fd46e8d65d15cc6e92d822d3607b5a9c0db1d91",
+    "content/adapters/gemini.js": "0d47d91690fbbe0de5d71079b5fb32d579a1699e45b25037a6b0ef996f7a318f",
+    "popup/popup.html": "4c496cf0a86a88ab1037f520d5d1440bd3cbef1e83ea69415a282a79dfd88657",
+    "popup/popup.js": "6586e274eca6cceabbaec26b0788d554ef2ada88f7b64b84543c43d32eb3f4e7",
+    "styles/sidebar.css": "45046634bcb1e2a6c37a5294a17f778beba87238c1c8765fcc98ac3c8dc23e62",
+    "icons/icon16.png": "c7673aa69bf707c9a12ae43e1a0489113330964197ea379c648c19daa0f15885",
+    "icons/icon48.png": "e75b7007481f35c16a22bea446ee85110628347b673138798a7469f163cba411",
+    "icons/icon128.png": "4904947ea6a0e2cd9abd3c551cf4b3de63036b8a31c3e93962f551d0710df3f5"
+  }
+}

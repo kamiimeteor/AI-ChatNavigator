@@ -1,44 +1,22 @@
 window.ACN_Adapters = window.ACN_Adapters || [];
 window.ACN_Adapters.push({
   name: 'claude',
-
   match() {
-    var correctHost = location.hostname.includes('claude.ai');
-    if (!correctHost) return false;
-    var path = location.pathname;
-    return path === '/' || path === '/new' || path.startsWith('/chat/');
+    return location.hostname === 'claude.ai' &&
+      (location.pathname === '/' || location.pathname === '/new' || /^\/chat\/[^/]+\/?$/.test(location.pathname));
   },
-
   getContainer() {
-    var renderCount = document.querySelector('div[data-test-render-count]');
-    return renderCount ? renderCount.parentElement : null;
+    var marker = document.querySelector('div[data-test-render-count]');
+    return window.ACN_AdapterUtils.main() || (marker && marker.parentElement);
   },
-
   getUserMessages() {
-    var els = document.querySelectorAll('[data-testid="user-message"]');
-    if (els.length === 0) {
-      els = document.querySelectorAll('.font-user-message');
-    }
-    return Array.from(els).map(function (el) {
-      return { element: el, text: (el.innerText || '').trim() };
-    });
+    return window.ACN_AdapterUtils.messages(this.getContainer(), ['[data-testid="user-message"]', '.font-user-message']);
   },
-
-  scrollToMessage(element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  },
-
   isLikelyEmptyConversation() {
-    var correctHost = location.hostname.includes('claude.ai');
-    if (!correctHost) return false;
-    var hasAnyMessage = document.querySelector('[data-testid="user-message"]') ||
-                        document.querySelector('.font-user-message') ||
-                        document.querySelector('.font-claude-message');
-    return !hasAnyMessage;
+    return ['/', '/new'].includes(location.pathname) &&
+      !document.querySelector('[data-testid="user-message"], .font-user-message, .font-claude-message');
   },
-
   getChatTitle() {
-    var title = document.title || '';
-    return title.replace(/\s*[-|]\s*Claude\s*$/, '').trim() || 'New Chat';
+    return document.title.replace(/\s*[-|]\s*Claude\s*$/, '').trim() || 'New Chat';
   }
 });

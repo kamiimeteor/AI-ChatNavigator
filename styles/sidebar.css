@@ -4,13 +4,15 @@
 
 /* --- Trigger Tab (visible handle on right edge) --- */
 .acn-trigger {
+  border: 0;
+  padding: 0;
   position: fixed;
   top: 50%;
-  right: 0;
+  right: 8px;
   transform: translateY(-50%);
-  width: 24px;
+  width: 28px;
   height: 80px;
-  z-index: 9998;
+  z-index: 2147483646;
   cursor: pointer;
   background: #03A9F4;
   border-radius: 6px 0 0 6px;
@@ -50,7 +52,7 @@
   transform: translateY(-50%);
   width: 196px;
   height: 240px;
-  z-index: 9999;
+  z-index: 2147483647;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -149,6 +151,13 @@
 }
 
 .acn-toc-item {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
   padding: 8px 16px;
   cursor: pointer;
   white-space: nowrap;
@@ -161,6 +170,42 @@
 .acn-toc-item:hover {
   background: rgba(13, 13, 13, 0.04);
   color: #0D0D0D;
+}
+
+.acn-toc-item:focus-visible,
+.acn-trigger:focus-visible,
+.acn-btn:focus-visible,
+.acn-retry:focus-visible {
+  outline: 2px solid #03A9F4;
+  outline-offset: -2px;
+}
+
+.acn-coverage {
+  padding: 6px 8px;
+  font-size: 10px;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.acn-notice:not(:empty) {
+  padding: 6px 8px;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.acn-retry {
+  margin: 0 12px 12px;
+  padding: 5px 10px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acn-sidebar, .acn-trigger, .acn-toc-item { transition: none; }
+  .acn-highlight-flash { animation: none !important; }
 }
 
 .acn-toc-item.acn-active {

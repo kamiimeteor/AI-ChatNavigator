@@ -1,56 +1,22 @@
 window.ACN_Adapters = window.ACN_Adapters || [];
 window.ACN_Adapters.push({
   name: 'chatgpt',
-
   match() {
-    var correctHost = location.hostname.includes('chatgpt.com') ||
-                      location.hostname.includes('chat.openai.com');
-    if (!correctHost) return false;
-    var path = location.pathname;
-    return path === '/' || path.startsWith('/c/');
+    return ['chatgpt.com', 'chat.openai.com'].includes(location.hostname) &&
+      (location.pathname === '/' || /^\/c\/[^/]+\/?$/.test(location.pathname));
   },
-
-  getContainer() {
-    // main#main is the primary chat container on current ChatGPT
-    var container = document.querySelector('main#main');
-    if (container) return container;
-    // Fallback: find the scrollable parent of the first user message
-    var firstMsg = document.querySelector('.user-message-bubble-color');
-    if (firstMsg) {
-      var el = firstMsg.parentElement;
-      while (el && el !== document.body) {
-        var style = getComputedStyle(el);
-        if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
-          return el;
-        }
-        el = el.parentElement;
-      }
-    }
-    return null;
-  },
-
+  getContainer() { return window.ACN_AdapterUtils.main(); },
   getUserMessages() {
-    var els = document.querySelectorAll('.user-message-bubble-color');
-    return Array.from(els).map(function (el) {
-      return { element: el, text: (el.innerText || '').trim() };
-    });
+    return window.ACN_AdapterUtils.messages(this.getContainer(), [
+      '[data-message-author-role="user"]',
+      '[data-testid*="user-message"]',
+      '.user-message-bubble-color'
+    ]);
   },
-
-  scrollToMessage(element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  },
-
   isLikelyEmptyConversation() {
-    var correctHost = location.hostname.includes('chatgpt.com') ||
-                      location.hostname.includes('chat.openai.com');
-    if (!correctHost) return false;
-    var hasAnyMessage = document.querySelector('.user-message-bubble-color') ||
-                        document.querySelector('.agent-turn');
-    return !hasAnyMessage;
+    return location.pathname === '/' && !document.querySelector('[data-message-author-role], article[data-testid*="conversation-turn"]');
   },
-
   getChatTitle() {
-    var title = document.title || '';
-    return title.replace(/\s*[-|]\s*ChatGPT\s*$/, '').trim() || 'New Chat';
+    return document.title.replace(/\s*[-|]\s*ChatGPT\s*$/, '').trim() || 'New Chat';
   }
 });

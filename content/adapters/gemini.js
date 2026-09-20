@@ -1,45 +1,21 @@
 window.ACN_Adapters = window.ACN_Adapters || [];
 window.ACN_Adapters.push({
   name: 'gemini',
-
   match() {
-    var correctHost = location.hostname.includes('gemini.google.com');
-    if (!correctHost) return false;
-    return /^\/(u\/\d+\/)?app(\/|$)/.test(location.pathname);
+    return location.hostname === 'gemini.google.com' && /^\/(u\/\d+\/)?app(\/|$)/.test(location.pathname);
   },
-
   getContainer() {
-    return document.querySelector('#chat-history') ||
-           document.querySelector('.conversation-container') ||
-           document.querySelector('infinite-scroller');
+    return document.querySelector('#chat-history') || document.querySelector('infinite-scroller') ||
+      window.ACN_AdapterUtils.main() || document.querySelector('.conversation-container');
   },
-
   getUserMessages() {
-    var els = document.querySelectorAll('user-query-content');
-    if (els.length === 0) {
-      els = document.querySelectorAll('user-query');
-    }
-    return Array.from(els).map(function (el) {
-      return { element: el, text: (el.innerText || '').trim() };
-    });
+    return window.ACN_AdapterUtils.messages(this.getContainer(), ['user-query-content', 'user-query']);
   },
-
-  scrollToMessage(element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  },
-
   isLikelyEmptyConversation() {
-    var correctHost = location.hostname.includes('gemini.google.com');
-    if (!correctHost) return false;
-    var hasAnyQuery = document.querySelector('user-query') ||
-                      document.querySelector('user-query-content');
-    var hasAnyResponse = document.querySelector('model-response') ||
-                         document.querySelector('message-content');
-    return !hasAnyQuery && !hasAnyResponse;
+    return /^\/(u\/\d+\/)?app\/?$/.test(location.pathname) &&
+      !document.querySelector('user-query, user-query-content, model-response, message-content');
   },
-
   getChatTitle() {
-    var title = document.title || '';
-    return title.replace(/\s*[-|]\s*Google Gemini\s*$/i, '').replace(/\s*[-|]\s*Gemini\s*$/i, '').trim() || 'New Chat';
+    return document.title.replace(/\s*[-|]\s*(Google )?Gemini\s*$/i, '').trim() || 'New Chat';
   }
 });
