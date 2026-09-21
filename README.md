@@ -5,10 +5,13 @@
       <img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1097648&theme=light" height="54" alt="AI Chat Navigator - Add a floating TOC sidebar to AI chats | Product Hunt">
     </a>
   </p>
-  <p>A Chrome extension that adds a floating table of contents to ChatGPT, Claude, and Gemini.</p>
+  <p>Find earlier prompts in long ChatGPT, Claude, and Gemini conversations with a floating table of contents.</p>
   <p>
     <a href="https://chromewebstore.google.com/detail/ai-chatnavigator/illmkheigijhoimkdghiaanedpinibmc?authuser=0&hl=en">
       <img src="https://img.shields.io/badge/Chrome_Web_Store-Install-blue?logo=googlechrome&logoColor=white" alt="Chrome Web Store">
+    </a>
+    <a href="https://github.com/kamiimeteor/AI-ChatNavigator/releases/tag/v1.0.3">
+      <img src="https://img.shields.io/badge/version-1.0.3-blue" alt="Version 1.0.3">
     </a>
     <img src="https://img.shields.io/badge/license-All_Rights_Reserved-lightgrey" alt="License: All Rights Reserved">
     <img src="https://img.shields.io/badge/vanilla-JavaScript-yellow?logo=javascript&logoColor=white" alt="Vanilla JavaScript">
@@ -18,20 +21,31 @@
 
 ![AI ChatNavigator Demo](docs/demo.gif)
 
-## What It Does
+## What it does
 
-Loaded user prompts become clickable entries in a sidebar. Click an entry to jump to that message. The outline covers messages currently present on the page; earlier history may not be loaded.
+AI ChatNavigator is a Chrome extension that turns loaded user prompts into clickable sidebar entries. Click an entry to jump to that message, or scroll through the conversation and follow the highlighted prompt.
+
+The sidebar shows how many prompts are currently loaded. It updates as the site loads or removes messages; it does not fetch or archive unloaded history.
 
 **Supported chat platforms:** ChatGPT · Claude · Gemini
 
+## What's new in 1.0.3
+
+1. The outline updates changed entries during streamed replies while preserving keyboard focus and the sidebar's scroll position.
+2. Jumping to a prompt stops when you scroll, touch the page, press a scroll key, choose another prompt, close the sidebar, or switch chats. A jump makes at most one short follow-up position correction.
+3. Message matching uses live nodes and message IDs. If an edited or removed prompt cannot be identified safely, the sidebar shows a notice instead of choosing a target by repeated text or list position.
+4. Loading, empty-chat, and error states include clearer feedback and a **Retry** action. The extension can reconnect when a site replaces its conversation container.
+5. Sidebar controls support Tab/Enter and respect reduced-motion settings. The popup distinguishes supported, loading, and unsupported pages; extension logs omit conversation text.
+
+Read the [English release notes](docs/releases/1.0.3.en.md), [中文更新说明](docs/releases/1.0.3.md), or [download v1.0.3](https://github.com/kamiimeteor/AI-ChatNavigator/releases/tag/v1.0.3).
+
 ## Features
 
-- **Live prompt outline** — updates changed entries without rebuilding the list during streamed answers
-- **Cancellable navigation** — jump to a loaded prompt; scrolling, another click, or changing chats cancels the pending jump
-- **Active tracking** — the current prompt is highlighted as you scroll
-- **Pin or auto-hide** — keep the sidebar open or let it appear on hover
-- **Dark mode** — adapts to each platform's theme
-- **Local processing** — no external requests, accounts, or conversation text in extension logs
+- A live prompt outline with active-message highlighting as you scroll.
+- Click-to-jump navigation that yields to your next action.
+- A sidebar you can pin open or reveal on hover, with light and dark themes.
+- Keyboard-accessible controls, loading feedback, and retry support.
+- Local processing with no external requests, analytics, or extension account.
 
 ## Screenshots
 
@@ -45,17 +59,30 @@ Loaded user prompts become clickable entries in a sidebar. Click an entry to jum
 
 **[→ Install from Chrome Web Store](https://chromewebstore.google.com/detail/ai-chatnavigator/illmkheigijhoimkdghiaanedpinibmc?authuser=0&hl=en)**
 
-For local development:
+### Install v1.0.3 from GitHub
 
-1. Enable Developer mode in `chrome://extensions`.
-2. Choose **Load unpacked** and select this project folder.
-3. Refresh existing chat tabs after installing or reloading the extension.
+1. Download `AI-ChatNavigator-v1.0.3-chrome.zip` from the [v1.0.3 release](https://github.com/kamiimeteor/AI-ChatNavigator/releases/tag/v1.0.3) and extract it.
+2. Open `chrome://extensions` and enable **Developer mode**.
+3. Choose **Load unpacked** and select the extracted folder containing `manifest.json`.
+4. Refresh existing ChatGPT, Claude, or Gemini tabs.
 
-For a Chrome Web Store upload package, run `node scripts/build-chrome-release.mjs`.
+The GitHub release includes a SHA-256 checksum and source provenance file. Chrome Web Store availability follows its own review and rollout schedule.
 
-## How It Works
+For local development, clone this repository and load the project folder through **Load unpacked**. After changing the source, reload the extension in `chrome://extensions` and refresh your chat tabs.
 
-The extension uses a platform adapter pattern — each supported site has its own adapter that handles DOM selectors and route matching, while shared modules manage the sidebar UI, state machine, and observers.
+## Supported pages
+
+| Platform | Routes enabled in v1.0.3 |
+|---|---|
+| ChatGPT | `chatgpt.com` and `chat.openai.com`: `/` and `/c/<id>` |
+| Claude | `claude.ai`: `/`, `/new`, and `/chat/<id>` |
+| Gemini | `gemini.google.com`: `/app` and paths under it, including `/u/<number>/app` |
+
+These are the adapter's route rules, not a guarantee that every live interface variant has been verified. Project-specific, custom assistant, shared, and agent/work pages outside these rules are not supported.
+
+## How it works
+
+Each supported site has an adapter for DOM selectors and route matching. Shared modules manage message identity, navigation, the sidebar UI, and page observers.
 
 ```
 AI_ChatNavigator/
@@ -79,13 +106,13 @@ AI_ChatNavigator/
 
 ### Key technical decisions
 
-- **Vanilla JS, optional release build, zero runtime dependencies** — keeps the extension lightweight and easy to audit
-- **Adapter pattern** — platform-specific DOM logic stays isolated; adding a new platform means adding one file
-- **Route-based matching** — adapters match on hostname + URL path, not DOM elements, so empty conversations work correctly
-- **Lifecycle recovery** — batched DOM observation, active tracking, URL polling, and periodic checks for replaced containers
-- **Minimal permissions** — only `storage` (for sidebar pin state)
+- **Vanilla JS, optional release build, zero runtime dependencies**: keeps the extension lightweight and easy to audit
+- **Adapter pattern**: platform-specific DOM logic stays isolated; new platforms need an adapter and the corresponding manifest, popup, and test updates
+- **Route-based matching**: adapters match on hostname + URL path, not DOM elements, so empty conversations work correctly
+- **Lifecycle recovery**: batched DOM observation, active tracking, URL polling, and periodic checks for replaced containers
+- **Minimal permissions**: only `storage` (for sidebar pin state)
 
-## Tests and Release Build
+## Tests and release build
 
 Run the dependency-free regression tests:
 
@@ -115,7 +142,7 @@ The build checks JavaScript syntax, runs the regression tests, and packages an e
 
 Existing release archives and unpacked release directories are not overwritten. A new release requires a new version. Refresh chat tabs after upgrading.
 
-See [1.0.3 release notes](docs/releases/1.0.3.md) for verification results and remaining live-site checks.
+The 1.0.3 release notes record 17 passing logic tests and 12 browser checks per platform on synthetic pages. Live signed-in sites, A/B variants, complex attachments, and the native toolbar popup still need manual verification. See the [release notes](docs/releases/1.0.3.en.md) for the validation scope.
 
 ## Privacy
 
@@ -124,13 +151,13 @@ See [1.0.3 release notes](docs/releases/1.0.3.md) for verification results and r
 - No account or login required
 - Only permission: `storage` (sidebar UI preferences)
 
-## Known Limitations
+## Known limitations
 
-- Depends on platform DOM structure — adapters may need updates when ChatGPT, Claude, or Gemini change their frontend
-- Behavior may vary during platform A/B tests or redesigns
+- Depends on platform DOM structure: adapters may need updates when ChatGPT, Claude, or Gemini change their frontend
+- Behavior may vary during platform A/B tests or redesigns; the existing floating sidebar can cover part of a narrow window
 - The outline includes currently loaded prompts only. It does not fetch or archive unloaded history, or claim complete conversation coverage
 - If a prompt no longer has a unique live identity, navigation stops instead of guessing from its text or position
-- Project-specific, custom assistant, shared, and agent/work pages outside the adapters' route rules are not claimed as supported
+- Search, bookmarks, reading-position restoration across conversations, resizable panels, and Chrome's native Side Panel are not included in 1.0.3
 
 ## Contributing
 
