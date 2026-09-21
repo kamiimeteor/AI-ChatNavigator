@@ -11,6 +11,7 @@ window.ACN_Navigation = (function () {
       var url = location.href;
       var timer = null;
       var finished = false;
+      var placeholderChecks = 0;
       var job = { finish: finish };
       pending = job;
 
@@ -51,6 +52,29 @@ window.ACN_Navigation = (function () {
         pos.container.scrollTo({ top: Math.max(0, pos.container.scrollTop + pos.delta), behavior: 'instant' });
       }
 
+      function isPlaceholder(target) {
+        return adapter.isPlaceholder && adapter.isPlaceholder(target);
+      }
+
+      function settle() {
+        if (url !== location.href) { finish({ status: 'cancelled' }); return; }
+        try {
+          var fresh = currentTarget();
+          if (!fresh) { finish({ status: 'unavailable' }); return; }
+          // The first scroll already reached the exact turn's shell. Wait for
+          // its text to mount without further scrolling or scanning history.
+          if (isPlaceholder(fresh)) {
+            if (++placeholderChecks >= 20) { finish({ status: 'unavailable' }); return; }
+            timer = setTimeout(settle, 40);
+            return;
+          }
+          if (!position(fresh).visible) scroll(fresh);
+          finish({ status: 'success', element: fresh });
+        } catch (error) {
+          finish({ status: 'failed' });
+        }
+      }
+
       try {
         var target = currentTarget();
         if (!target) { finish({ status: 'unavailable' }); return; }
@@ -60,17 +84,7 @@ window.ACN_Navigation = (function () {
         scroll(target);
         // One bounded correction for layout settling; never pin the user's
         // scroll position or load history implicitly.
-        timer = setTimeout(function () {
-          if (url !== location.href) { finish({ status: 'cancelled' }); return; }
-          try {
-            var fresh = currentTarget();
-            if (!fresh) { finish({ status: 'unavailable' }); return; }
-            if (!position(fresh).visible) scroll(fresh);
-            finish({ status: 'success', element: fresh });
-          } catch (error) {
-            finish({ status: 'failed' });
-          }
-        }, 120);
+        timer = setTimeout(settle, isPlaceholder(target) ? 40 : 120);
       } catch (error) {
         finish({ status: 'failed' });
       }

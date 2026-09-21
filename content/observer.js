@@ -7,6 +7,8 @@ window.ACN_Observer = (function () {
   var activeChangeHandler = null;
   var activeLockUntil = 0;
   var activeLockTarget = null;
+  var activeScrollHandler = null;
+  var activeFrame = null;
 
   var mutationTimer = null;
 
@@ -35,7 +37,8 @@ window.ACN_Observer = (function () {
     });
     mutationObs.observe(container, {
       childList: true, subtree: true, characterData: true, attributes: true,
-      attributeFilter: ['data-message-id', 'data-message-author-role', 'data-testid', 'aria-hidden', 'hidden', 'class']
+      attributeFilter: ['data-message-id', 'data-message-author-role', 'data-testid', 'data-turn-id-container',
+        'data-is-intersecting', 'data-turn', 'aria-hidden', 'hidden', 'class']
     });
   }
 
@@ -47,26 +50,29 @@ window.ACN_Observer = (function () {
   }
 
   function pickBestActiveTarget() {
-    var viewportCenter = window.innerHeight / 2;
-    var bestTarget = null;
-    var bestScore = Infinity;
-
-    trackedEntries.forEach(function (entry, element) {
-      if (!entry || !entry.isIntersecting || entry.intersectionRatio <= 0) return;
-
-      if (!element.isConnected) return;
-      var rect = element.getBoundingClientRect();
-      var elementCenter = rect.top + (rect.height / 2);
-      var distanceToCenter = Math.abs(elementCenter - viewportCenter);
-      var score = distanceToCenter - (entry.intersectionRatio * 100);
-
-      if (score < bestScore) {
-        bestScore = score;
-        bestTarget = element;
+    var elements = Array.from(trackedEntries.keys()).filter(function (element) { return element.isConnected; });
+    if (!elements.length) return null;
+    var container = window.ACN_AdapterUtils.scroller(elements[0]);
+    var root = container === document.scrollingElement || container === document.documentElement || container === document.body;
+    var bounds = root ? { top: 0, bottom: window.innerHeight } : container.getBoundingClientRect();
+    var readingLine = bounds.top + Math.min(80, (bounds.bottom - bounds.top) / 4);
+    var previous = null;
+    var previousTop = -Infinity;
+    var upcoming = null;
+    var upcomingTop = Infinity;
+    elements.forEach(function (element) {
+      var top = element.getBoundingClientRect().top;
+      // A prompt owns the answer below it until the next prompt reaches the
+      // reading line. A later prompt near screen center must not steal focus.
+      if (top <= readingLine + 2 && top >= previousTop) {
+        previous = element;
+        previousTop = top;
+      } else if (top > readingLine + 2 && top < upcomingTop) {
+        upcoming = element;
+        upcomingTop = top;
       }
     });
-
-    return bestTarget;
+    return previous || upcoming;
   }
 
   function emitActiveChange(target) {
@@ -94,6 +100,7 @@ window.ACN_Observer = (function () {
 
     activeChangeHandler = onActiveChange;
     trackedEntries = new Map();
+    messageElements.forEach(function (element) { trackedEntries.set(element, null); });
     currentActive = null;
     activeLockUntil = 0;
     activeLockTarget = null;
@@ -106,6 +113,18 @@ window.ACN_Observer = (function () {
     }, { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] });
 
     messageElements.forEach(function (el) { intersectionObs.observe(el); });
+    // Intersection thresholds alone miss movement inside a long answer and
+    // movement between fully visible prompts. Batch scroll reads per frame.
+    activeScrollHandler = function (event) {
+      if (isOwned(event.target) || activeFrame !== null) return;
+      activeFrame = window.requestAnimationFrame(function () {
+        activeFrame = null;
+        recomputeActiveTarget();
+      });
+    };
+    document.addEventListener('scroll', activeScrollHandler, { capture: true, passive: true });
+    window.addEventListener('resize', activeScrollHandler);
+    recomputeActiveTarget();
   }
 
   function lockActiveMessage(element, durationMs) {
@@ -115,6 +134,13 @@ window.ACN_Observer = (function () {
   }
 
   function stopTrackingActive() {
+    if (activeScrollHandler) {
+      document.removeEventListener('scroll', activeScrollHandler, true);
+      window.removeEventListener('resize', activeScrollHandler);
+      activeScrollHandler = null;
+    }
+    if (activeFrame !== null) window.cancelAnimationFrame(activeFrame);
+    activeFrame = null;
     if (intersectionObs) {
       intersectionObs.disconnect();
       intersectionObs = null;

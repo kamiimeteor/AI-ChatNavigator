@@ -180,6 +180,29 @@
   outline-offset: -2px;
 }
 
+.acn-history:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px 8px;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.acn-history-btn {
+  padding: 5px 8px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.acn-history-btn:focus-visible {
+  outline: 2px solid #03A9F4;
+  outline-offset: -2px;
+}
+
 .acn-coverage {
   padding: 6px 8px;
   font-size: 10px;
@@ -229,14 +252,20 @@
   font-size: 11px;
 }
 
-/* --- Highlight Flash (applied to chat messages) --- */
-@keyframes acnMessageFlash {
-  0% { background: rgba(3, 169, 244, 0.6); }
-  100% { background: rgba(3, 169, 244, 0); }
+/* --- Located prompt: hold for 1.5 seconds, then fade for 0.2 seconds --- */
+@keyframes acnHighlightFade {
+  from { box-shadow: 0 0 0 2px var(--acn-highlight-color); }
+  to { box-shadow: 0 0 0 2px transparent; }
 }
 
 .acn-highlight-flash {
-  animation: acnMessageFlash 1.5s ease-out forwards;
+  --acn-highlight-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 0 2px var(--acn-highlight-color);
+  animation: acnHighlightFade 0.2s ease-out 1.5s forwards;
+}
+
+.acn-highlight-flash.acn-highlight-dark {
+  --acn-highlight-color: rgba(196, 181, 253, 0.5);
 }
 
 /* --- Fullscreen: hide everything --- */

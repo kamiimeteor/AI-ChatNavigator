@@ -23,9 +23,15 @@ window.ACN_Sidebar = (function () {
   var noticeEl = null;
   var retryBtn = null;
   var retryHandler = null;
-  var flashTimer = null;
   var flashElement = null;
+  var highlightCleanup = null;
+  var highlightTimer = null;
   var mountGeneration = 0;
+  var historyEl = null;
+  var historyTextEl = null;
+  var historyBtn = null;
+  var historyHandler = null;
+  var historyState = 'idle';
 
   function canUseStorage() {
     try {
@@ -159,6 +165,20 @@ window.ACN_Sidebar = (function () {
     retryBtn.className = 'acn-retry';
     retryBtn.textContent = 'Retry';
     retryBtn.addEventListener('click', function () { if (retryHandler) retryHandler(); });
+    historyEl = document.createElement('div');
+    historyEl.className = 'acn-history';
+    historyEl.hidden = true;
+    historyTextEl = document.createElement('span');
+    historyTextEl.setAttribute('role', 'status');
+    historyBtn = document.createElement('button');
+    historyBtn.type = 'button';
+    historyBtn.className = 'acn-history-btn';
+    historyBtn.addEventListener('click', function () {
+      if (historyState === 'scheduled' || historyState === 'loading') window.ACN_HistoryLoader.cancel();
+      else if (historyHandler) historyHandler();
+    });
+    historyEl.appendChild(historyTextEl);
+    historyEl.appendChild(historyBtn);
 
     sidebarEl.appendChild(header);
     sidebarEl.appendChild(stateTextEl);
@@ -166,6 +186,7 @@ window.ACN_Sidebar = (function () {
     sidebarEl.appendChild(tocListEl);
     sidebarEl.appendChild(noticeEl);
     sidebarEl.appendChild(coverageEl);
+    sidebarEl.appendChild(historyEl);
     mountNodes();
     startMountObserver();
 
@@ -320,6 +341,17 @@ window.ACN_Sidebar = (function () {
     if (noticeEl && noticeEl.textContent !== text) noticeEl.textContent = text;
   }
 
+  function setHistoryState(next) {
+    historyState = next;
+    if (!historyEl) return;
+    historyEl.hidden = next === 'idle' || next === 'complete';
+    var loading = next === 'scheduled' || next === 'loading';
+    historyTextEl.textContent = loading ? 'Loading earlier prompts…' : 'Earlier prompts may still be missing.';
+    historyBtn.textContent = loading ? 'Stop loading' : 'Load remaining prompts';
+    if (loading) historyBtn.setAttribute('data-acn-history-stop', '');
+    else historyBtn.removeAttribute('data-acn-history-stop');
+  }
+
   function renderTOC() {
     if (!tocListEl) return;
     var scrollTop = tocListEl.scrollTop;
@@ -346,12 +378,47 @@ window.ACN_Sidebar = (function () {
     syncActiveElement(false);
   }
 
+  function clearHighlight() {
+    clearTimeout(highlightTimer);
+    highlightTimer = null;
+    if (highlightCleanup) highlightCleanup();
+    highlightCleanup = null;
+    if (flashElement) flashElement.classList.remove('acn-highlight-flash', 'acn-highlight-dark');
+    flashElement = null;
+  }
+
+  function highlightTarget(element) {
+    clearHighlight();
+    flashElement = element;
+    flashElement.classList.toggle('acn-highlight-dark', isDarkMode());
+    flashElement.classList.add('acn-highlight-flash');
+    var scroller = window.ACN_AdapterUtils.scroller(element);
+    var originalTop = scroller.scrollTop;
+    var events = ['wheel', 'touchmove', 'keydown', 'scroll'];
+    function onReadingInput(event) {
+      var target = event.target;
+      if (target && target.closest && target.closest('[data-acn-root]')) return;
+      if (event.type === 'keydown' && !['Escape', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) return;
+      // Ignore the delayed scroll event from the completed navigation, as
+      // well as scrolling unrelated panels. A scrollbar drag still dismisses.
+      if (event.type === 'scroll' && Math.abs(scroller.scrollTop - originalTop) < 2) return;
+      clearHighlight();
+    }
+    events.forEach(function (type) {
+      document.addEventListener(type, onReadingInput, { capture: true, passive: true });
+    });
+    highlightCleanup = function () {
+      events.forEach(function (type) { document.removeEventListener(type, onReadingInput, true); });
+    };
+    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    highlightTimer = setTimeout(clearHighlight, reducedMotion ? 1500 : 1750);
+  }
+
   function cancelNavigation() {
     navigationRequestId++;
     window.ACN_Navigation.cancel();
-    clearTimeout(flashTimer);
-    if (flashElement) flashElement.classList.remove('acn-highlight-flash');
-    flashElement = null;
+    if (window.ACN_HistoryLoader) window.ACN_HistoryLoader.cancel();
+    clearHighlight();
     if (window.ACN_Observer) window.ACN_Observer.lockActiveMessage(null, 0);
   }
 
@@ -370,27 +437,29 @@ window.ACN_Sidebar = (function () {
     }
     activeElement = result.element;
     syncActiveElement(false);
-    flashElement = result.element;
-    flashElement.classList.add('acn-highlight-flash');
-    flashTimer = setTimeout(function () {
-      if (flashElement) flashElement.classList.remove('acn-highlight-flash');
-      flashElement = null;
-    }, 1600);
+    highlightTarget(adapter.getHighlightTarget ? adapter.getHighlightTarget(result.element) : result.element);
   }
 
   function updateEntries(messages) {
     var nextEntries = messageIndex.update(messages);
     var unchanged = nextEntries.length === tocEntries.length && nextEntries.every(function (entry, i) {
       var previous = tocEntries[i];
-      return entry.key === previous.key && entry.text === previous.text && entry.element === previous.element;
+      return entry.key === previous.key && entry.text === previous.text && entry.element === previous.element &&
+        entry.retained === previous.retained;
     });
     if (unchanged) return;
     tocEntries = nextEntries;
     if (!tocEntries.some(function (entry) { return entry.element === activeElement; })) activeElement = null;
     renderTOC();
     if (coverageEl) {
-      var summary = tocEntries.length + ' loaded prompt' + (tocEntries.length === 1 ? '' : 's') +
-        ' · Earlier history may be missing';
+      var indexed = window.ACN_activeAdapter && window.ACN_activeAdapter.coverage === 'session-index';
+      var summary = tocEntries.length + (indexed ? ' indexed prompt' : ' loaded prompt') +
+        (tocEntries.length === 1 ? '' : 's');
+      if (indexed) {
+        var retained = tocEntries.filter(function (entry) { return entry.retained; }).length;
+        if (retained) summary += ' · ' + retained + ' off-screen';
+        summary += ' · Unseen history may be missing';
+      } else summary += ' · Earlier history may be missing';
       if (coverageEl.textContent !== summary) coverageEl.textContent = summary;
     }
   }
@@ -457,6 +526,11 @@ window.ACN_Sidebar = (function () {
     messageIndex = window.ACN_MessageIndex.create();
     itemNodes.clear();
     retryHandler = null;
+    historyHandler = null;
+    historyEl = null;
+    historyTextEl = null;
+    historyBtn = null;
+    historyState = 'idle';
     retryBtn = null;
     noticeEl = null;
     coverageEl = null;
@@ -485,6 +559,8 @@ window.ACN_Sidebar = (function () {
     create: create,
     cancelNavigation: cancelNavigation,
     setRetryHandler: function (handler) { retryHandler = handler; },
+    setHistoryHandler: function (handler) { historyHandler = handler; },
+    setHistoryState: setHistoryState,
     destroy: destroy,
     show: show,
     hide: hide,

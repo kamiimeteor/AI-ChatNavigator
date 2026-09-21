@@ -85,3 +85,51 @@ test('adapter failures return a recoverable status without leaving listeners', a
   assert.equal((await f.nav.navigate(f.adapter, f.entry)).status, 'failed');
   assert.equal(f.listeners.size, 0);
 });
+
+test('a virtual prompt scrolls immediately and succeeds only after its exact text remounts', async () => {
+  const f = setup();
+  f.adapter.isPlaceholder = node => node === f.element;
+  const promise = f.nav.navigate(f.adapter,f.entry);
+  assert.equal(f.scrolls,1);
+  f.flush();
+  assert.equal(f.scrolls,1);
+  assert.equal(f.timers.size,1);
+  const restored = {isConnected:true,getBoundingClientRect:()=>({top:80,bottom:180})};
+  f.setMessages([{messageId:'a',text:'hello',element:restored}]);
+  f.flush();
+  const result = await promise;
+  assert.equal(result.status,'success');
+  assert.equal(result.element,restored);
+  assert.equal(f.scrolls,1);
+  assert.equal(f.listeners.size,0);
+});
+test('a placeholder that never renders stops without repeated scrolling or a false success', async () => {
+  const f = setup(); f.adapter.isPlaceholder = () => true;
+  const promise = f.nav.navigate(f.adapter,f.entry);
+  for(let i=0;i<25;i++) f.flush();
+  assert.equal((await promise).status,'unavailable');
+  assert.equal(f.scrolls,1);
+  assert.equal(f.timers.size,0);
+  assert.equal(f.listeners.size,0);
+});
+test('manual scrolling cancels placeholder recovery before late remounting', async () => {
+  const f = setup(); f.adapter.isPlaceholder = () => true;
+  const promise = f.nav.navigate(f.adapter,f.entry);
+  f.flush(); f.input('wheel'); f.container.scrollTop=123; f.flush();
+  assert.equal((await promise).status,'cancelled');
+  assert.equal(f.container.scrollTop,123);
+  assert.equal(f.scrolls,1);
+  assert.equal(f.timers.size,0);
+});
+test('edits and route changes invalidate an in-flight placeholder jump', async () => {
+  for(const change of ['edit','url']) {
+    const f=setup(); f.adapter.isPlaceholder=()=>true;
+    const promise=f.nav.navigate(f.adapter,f.entry); f.flush();
+    if(change==='edit') f.setMessages([{messageId:'a',text:'new branch',element:f.element}]);
+    else f.context.location.href='https://chatgpt.com/c/b';
+    f.flush();
+    assert.equal((await promise).status,change==='edit'?'unavailable':'cancelled');
+    assert.equal(f.scrolls,1);
+    assert.equal(f.timers.size,0);
+  }
+});

@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync, readFileSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
@@ -12,7 +12,7 @@ if (manifest.manifest_version !== 3 || !/^\d+\.\d+\.\d+$/.test(manifest.version)
 }
 const files = [
   'manifest.json',
-  'content/message-index.js', 'content/navigation.js', 'content/content.js',
+  'content/message-index.js', 'content/navigation.js', 'content/history-loader.js', 'content/content.js',
   'content/observer.js', 'content/sidebar.js', 'content/adapters/common.js',
   'content/adapters/chatgpt.js', 'content/adapters/claude.js', 'content/adapters/gemini.js',
   'popup/popup.html', 'popup/popup.js', 'styles/sidebar.css',
@@ -23,7 +23,9 @@ for (const file of [...files, ...referenced]) {
   if (!files.includes(file) || !existsSync(path.join(rootDir, file))) throw new Error('Missing or unapproved release file: ' + file);
   if (file.endsWith('.js')) execFileSync(process.execPath, ['--check', path.join(rootDir, file)]);
 }
-execFileSync(process.execPath, ['--test', 'tests/message-index.test.cjs', 'tests/navigation.test.cjs'], { cwd: rootDir, stdio: 'inherit' });
+const tests = readdirSync(path.join(rootDir, 'tests')).filter(file => file.endsWith('.test.cjs'))
+  .sort().map(file => path.join('tests', file));
+execFileSync(process.execPath, ['--test', ...tests], { cwd: rootDir, stdio: 'inherit' });
 
 // Stage in a fresh directory; never delete the user's existing dist contents.
 const stage = mkdtempSync(path.join(tmpdir(), 'acn-release-'));

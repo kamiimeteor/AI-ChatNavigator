@@ -8,11 +8,21 @@
   var generation = 0;
   var deadline = 0;
   var suspended = false;
+  var historyAttempted = false;
+
+  function loadHistory(delay) {
+    if (!activeAdapter || !activeAdapter.getHistorySnapshot) return;
+    historyAttempted = true;
+    Sidebar.cancelNavigation();
+    window.ACN_HistoryLoader.start(activeAdapter, refresh, Sidebar.setHistoryState, delay);
+  }
 
   function stop() {
     generation++;
     clearInterval(healthTimer);
     healthTimer = null;
+    window.ACN_HistoryLoader.cancel();
+    historyAttempted = false;
     Observer.destroyAll();
     Sidebar.cancelNavigation();
     container = null;
@@ -31,6 +41,8 @@
     try {
       var nextContainer = activeAdapter.getContainer();
       if (nextContainer !== container || (container && !container.isConnected)) {
+        window.ACN_HistoryLoader.cancel();
+        historyAttempted = false;
         Sidebar.cancelNavigation();
         Observer.stopWatchingDOM();
         container = nextContainer && nextContainer.isConnected ? nextContainer : null;
@@ -49,6 +61,7 @@
         Sidebar.setState(Sidebar.STATES.READY);
         Sidebar.setTitle(activeAdapter.getChatTitle());
         Sidebar.maybeAutoShow();
+        if (!historyAttempted && activeAdapter.getHistorySnapshot) loadHistory();
       } else if (Date.now() < deadline) {
         Sidebar.setState(Sidebar.STATES.LOADING);
       } else if (container && activeAdapter.isLikelyEmptyConversation()) {
@@ -74,6 +87,7 @@
     deadline = Date.now() + 10000;
     Sidebar.create();
     Sidebar.setRetryHandler(init);
+    Sidebar.setHistoryHandler(function () { loadHistory(0); });
     refresh();
     // Recover replaced containers and messages arriving after the deadline.
     healthTimer = setInterval(function () { if (!document.hidden) refresh(); }, 1000);
@@ -90,7 +104,7 @@
     if (msg.type === 'ACN_STATUS') {
       sendResponse({ state: activeAdapter ? Sidebar.getState() : 'UNSUPPORTED',
         platform: activeAdapter ? activeAdapter.name : null,
-        messageCount: Sidebar.getEntries().length, coverage: 'loaded-only' });
+        messageCount: Sidebar.getEntries().length, coverage: activeAdapter && activeAdapter.coverage || 'loaded-only' });
     } else if (msg.type === 'ACN_SHOW_SIDEBAR') {
       if (activeAdapter) Sidebar.reopen();
       sendResponse({ ok: !!activeAdapter });

@@ -3,8 +3,8 @@ window.ACN_MessageIndex = (function () {
     return (text || '').replace(/\s+/g, ' ').trim();
   }
 
-  // A snapshot contains only mounted messages. Never infer missing history,
-  // branch membership or a conversation-wide ordinal from DOM position.
+  // Adapters may include a validated, still-mounted virtualization shell.
+  // Never infer missing history or branch membership from DOM position.
   function create() {
     var nodeKeys = new WeakMap();
     var nextKey = 0;
@@ -28,6 +28,7 @@ window.ACN_MessageIndex = (function () {
             key: key,
             element: msg.element,
             messageId: id,
+            retained: !!msg.retained,
             text: text,
             label: text.length > 50 ? text.slice(0, 50) + '\u2026' : (text || 'Attachment prompt')
           };

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI ChatNavigator",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Real-time table of contents for AI chat platforms. Never get lost in long conversations again.",
   "permissions": ["storage"],
   "icons": {
@@ -25,6 +25,7 @@
         "content/adapters/gemini.js",
         "content/observer.js",
         "content/navigation.js",
+        "content/history-loader.js",
         "content/sidebar.js",
         "content/content.js"
       ],

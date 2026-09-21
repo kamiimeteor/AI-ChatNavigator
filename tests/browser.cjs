@@ -55,7 +55,7 @@ function fixture(platform, count = 30) {
       assert.match(await page.title(), /Stability fixture/);
       await page.waitForFunction(() => document.querySelectorAll('.acn-toc-item').length === 30);
       await page.getByRole('button', {name:'Pin sidebar', exact:true}).click();
-      assert.match(await page.locator('.acn-coverage').innerText(), /30 loaded prompts/);
+      assert.match(await page.locator('.acn-coverage').innerText(), platform === 'chatgpt' ? /30 indexed prompts/ : /30 loaded prompts/);
       assert(!(await page.locator('.acn-toc').innerText()).includes('Assistant answer'));
       assert.equal(await world('typeof window.ACN_activeAdapter.getUserMessages'), 'function');
       assert.equal(await page.evaluate(() => typeof window.ACN_activeAdapter), 'undefined');
@@ -93,7 +93,7 @@ function fixture(platform, count = 30) {
       // Rapid clicks select the last request.
       await page.locator('.acn-toc-item').nth(3).dispatchEvent('click');
       await page.locator('.acn-toc-item').nth(12).dispatchEvent('click');
-      await page.waitForFunction(() => document.querySelector('.acn-highlight-flash')?.getAttribute('data-message-id') === 'Prompt-13');
+      await page.waitForFunction(() => document.querySelector('.acn-highlight-flash')?.closest('[data-message-id]')?.getAttribute('data-message-id') === 'Prompt-13');
       // Route changes invalidate an in-flight request before the URL poll.
       await world(`window.__navResult=null; ACN_Navigation.navigate(ACN_activeAdapter,ACN_Sidebar.getEntries()[0]).then(r=>window.__navResult=r.status); void 0;`);
       await page.evaluate(newURL => { history.pushState({},'',newURL);document.querySelector('#chat-history').scrollTop=444; }, origin+routePath+'-next');
@@ -119,7 +119,7 @@ function fixture(platform, count = 30) {
       assert.equal(await page.locator('.acn-toc-item').first().evaluate(el=>el.tagName),'BUTTON');
       await page.locator('.acn-toc-item').nth(5).focus();
       await page.keyboard.press('Enter');
-      await page.waitForFunction(() => document.querySelector('.acn-highlight-flash')?.getAttribute('data-message-id')==='Recovered-5');
+      await page.waitForFunction(() => document.querySelector('.acn-highlight-flash')?.closest('[data-message-id]')?.getAttribute('data-message-id')==='Recovered-5');
       await page.mouse.move(1100,100);
       await page.screenshot({path:path.join(output,platform+'-desktop.png')});
       await page.setViewportSize({width:800,height:720});

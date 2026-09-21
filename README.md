@@ -25,9 +25,15 @@
 
 AI ChatNavigator is a Chrome extension that turns loaded user prompts into clickable sidebar entries. Click an entry to jump to that message, or scroll through the conversation and follow the highlighted prompt.
 
-The sidebar shows how many prompts are currently loaded. It updates as the site loads or removes messages; it does not fetch or archive unloaded history.
+On ChatGPT, the sidebar keeps prompts it has already read while their virtual placeholders remain on the page. On opening a chat, it briefly scrolls through unread placeholders and restores your reading position. Any manual interaction stops that loading. Claude and Gemini list currently loaded prompts. Conversation text is not saved across page reloads.
 
 **Supported chat platforms:** ChatGPT · Claude · Gemini
+
+## 1.0.4 repository update
+
+Version 1.0.4 fixes ChatGPT prompt counts during scrolling, loads earlier prompts after refresh, and keeps the active outline entry aligned with the answer you are reading. Jump targets get a 2px violet outline at 50% opacity, held for 1.5 seconds before fading out over 0.2 seconds.
+
+The [1.0.4 package](release/AI-ChatNavigator-v1.0.4-chrome.zip) includes these changes. See the [release notes](docs/releases/1.0.4.md) for validation and limitations. This version has not been submitted to the Chrome Web Store; the store version remains 1.0.3.
 
 ## What's new in 1.0.3
 
@@ -91,6 +97,7 @@ AI_ChatNavigator/
 │   ├── content.js             # Entry point, adapter detection, retry logic
 │   ├── message-index.js       # Snapshot identity and safe message resolution
 │   ├── navigation.js          # Cancellable scrolling
+│   ├── history-loader.js      # Bounded ChatGPT history loading and position restoration
 │   ├── observer.js            # Batched DOM updates + active tracking + URL polling
 │   ├── sidebar.js             # Sidebar UI, state machine, TOC rendering
 │   └── adapters/
@@ -142,7 +149,7 @@ The build checks JavaScript syntax, runs the regression tests, and packages an e
 
 Existing release archives and unpacked release directories are not overwritten. A new release requires a new version. Refresh chat tabs after upgrading.
 
-The 1.0.3 release notes record 17 passing logic tests and 12 browser checks per platform on synthetic pages. Live signed-in sites, A/B variants, complex attachments, and the native toolbar popup still need manual verification. See the [release notes](docs/releases/1.0.3.en.md) for the validation scope.
+Version 1.0.4 has 53 passing logic tests. The user confirmed the ChatGPT count and navigation fixes on a signed-in conversation. The latest opacity adjustment, Claude/Gemini shared highlighting, and the native toolbar popup still need visual verification. The synthetic browser suite was last run for 1.0.3; see its [release notes](docs/releases/1.0.3.en.md) for that validation scope.
 
 ## Privacy
 
@@ -155,7 +162,7 @@ The 1.0.3 release notes record 17 passing logic tests and 12 browser checks per 
 
 - Depends on platform DOM structure: adapters may need updates when ChatGPT, Claude, or Gemini change their frontend
 - Behavior may vary during platform A/B tests or redesigns; the existing floating sidebar can cover part of a narrow window
-- The outline includes currently loaded prompts only. It does not fetch or archive unloaded history, or claim complete conversation coverage
+- ChatGPT indexing covers observed prompts and existing page placeholders. Automatic loading can stop on user input or reach its time limit; history not represented on the page can still be missing. Claude and Gemini list loaded prompts only
 - If a prompt no longer has a unique live identity, navigation stops instead of guessing from its text or position
 - Search, bookmarks, reading-position restoration across conversations, resizable panels, and Chrome's native Side Panel are not included in 1.0.3
 

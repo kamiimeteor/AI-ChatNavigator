@@ -20,6 +20,11 @@
         UNSUPPORTED: 'This page is not supported'
       };
       status.textContent = descriptions[response.state] || 'Refresh this tab';
+      if (response.state === 'READY' && response.coverage === 'session-index') {
+        status.textContent = 'Ready · indexed prompts';
+      }
+      document.getElementById('messages').previousElementSibling.textContent =
+        response.coverage === 'session-index' ? 'Indexed prompts' : 'Loaded prompts';
       document.getElementById('status-dot').classList.toggle('active', response.state === 'READY');
       document.getElementById('status-dot').classList.toggle('inactive', response.state !== 'READY');
       document.getElementById('platform').textContent = response.platform || '—';
