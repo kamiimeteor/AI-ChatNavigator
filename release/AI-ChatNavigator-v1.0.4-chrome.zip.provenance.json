@@ -1,0 +1,29 @@
+{
+  "version": "1.0.4",
+  "gitHead": "475560877241c2a30f369c90ce51b366b5a2beae",
+  "workingTreeDirty": true,
+  "zipSha256": "cc610df2fbfd3e2008fa401c64339e06839174f55a7d82f61e6c7e4ea3bb37ef",
+  "baselineRelease": {
+    "file": "AI-ChatNavigator-v1.0.2-chrome.zip",
+    "sha256": "9858590b5a99328b0554dd0be2326a8caa1c2eea0859ff2dfffcbc8ea7fdf95b"
+  },
+  "sourceSha256": {
+    "manifest.json": "ba58f72130b8ec5d8c70c430b07dd11e43e4ea8eea16785e3b5cd731c0d387ec",
+    "content/message-index.js": "26af29b95f8ab11263a795a953793e5628c5d4525c156cdd2fd76d8e4e85896d",
+    "content/navigation.js": "7ae9a393bc4bbb4919eb12562575cfc972dc46868587bf2323b3fe08aa8cb2fa",
+    "content/history-loader.js": "4802b6d077ffe3020fcb8d4804cf3733de02515f617e04047f613f8c470a5ef7",
+    "content/content.js": "936939581742fedd9eba277ecd0bcb6e1396c9212f66e056b98df8dc3651e125",
+    "content/observer.js": "3800a88727d169d7a0af96ea91ecd452374bf6fcfb1c201d0faa1d20ab39bd7c",
+    "content/sidebar.js": "9fe4cb99f3fd11096d9a831e8144d3904de88b656588fad501aa75f76b32a155",
+    "content/adapters/common.js": "dc8afcce4c9271780727b988ad8bc108dd3e2c0b3fff34b1a0f270871347d273",
+    "content/adapters/chatgpt.js": "304a61d5a3d7df13f6b5ba908b577106283477511c46a610db6801d5eac9feb2",
+    "content/adapters/claude.js": "b5560fcdebfe93ac6ff06a6f9fd46e8d65d15cc6e92d822d3607b5a9c0db1d91",
+    "content/adapters/gemini.js": "0d47d91690fbbe0de5d71079b5fb32d579a1699e45b25037a6b0ef996f7a318f",
+    "popup/popup.html": "4c496cf0a86a88ab1037f520d5d1440bd3cbef1e83ea69415a282a79dfd88657",
+    "popup/popup.js": "cfaa201266e2d0a7b0eb85d47c8169e8f4e8abb2bd35be1365681b9731ff48e4",
+    "styles/sidebar.css": "afad6e1ed960b1f24905bbadca82f3a6b7b3d5c34b2c63ae2f86ef01ac00d481",
+    "icons/icon16.png": "c7673aa69bf707c9a12ae43e1a0489113330964197ea379c648c19daa0f15885",
+    "icons/icon48.png": "e75b7007481f35c16a22bea446ee85110628347b673138798a7469f163cba411",
+    "icons/icon128.png": "4904947ea6a0e2cd9abd3c551cf4b3de63036b8a31c3e93962f551d0710df3f5"
+  }
+}
